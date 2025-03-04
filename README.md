@@ -66,31 +66,40 @@ But the Daniocell data only contains gene names and these don't map uniquely to 
 
 Additionally, some names aren't unique (but have had a suffix added in Daniocell) and can't be mapped back to a single Ensembl ID:
 
+```
 join -t $'\t' -j1 -a 1 <(sort -k 1b,1 gene_names.tsv) <(cut -f6,8 v4_3_2geneinfo.txt | sort -k 1b,1 | grep ENSDARG) \
   | sort -u | cut -f1 | uniq -c | sed -e 's/^ *//' | sed -e 's/ /\t/' | awk -F"\t" '$1 > 1 { print $2 }' \
   | join -t $'\t' -j1 - <(cut -f6,8 v4_3_2geneinfo.txt | sort -k 1b,1 | grep ENSDARG) \
   > problematic-genes.txt
+```
 
 Ignore these genes when mapping back to Ensembl IDs:
 
+```
 join -t $'\t' -j1 -a 1 <(sort -k 1b,1 gene_names.tsv) <(cut -f6,8 v4_3_2geneinfo.txt | sort -k 1b,1 | grep ENSDARG | grep -vf <(cut -f2 problematic-genes.txt | sort -u)) \
   | sort -u | awk -F"\t" -v OFS="\t" '{ if ($2 !~ /ENS/) $2 = "FALSE"; print $0 }' | sed -E 's/\.[0-9]+$/\tTRUE/' | sed -e 's/FALSE$/\tFALSE/' \
   > gene_names_ens_unsorted.tsv
+```
 
 Sort into original order:
 
+```
 awk -F"\t" 'FNR == NR { lineno[$1] = NR; next} {print lineno[$1] "\t" $0;}' gene_names.tsv gene_names_ens_unsorted.tsv | sort -k 1,1n | cut -f2- \
   > gene_names_ens_sorted.tsv
+```
 
 28769 of the 36250 gene names have been mapped uniquely to an Ensembl ID
 
 Check the list of genes supplied by Amanda:
 
+```
 sed -e 's/.*,//' gene_list.csv | grep ENSDARG | sort -u | wc -l
 334
+```
 
 Two genes are repeated in the list:
 
+```
 grep ENSDARG00000077840 gene_list.csv
 95,meis2a,ENSDARG00000077840
 96,meis2b,ENSDARG00000077840
@@ -98,21 +107,27 @@ grep ENSDARG00000077840 gene_list.csv
 grep ENSDARG00000056218 gene_list.csv
 13,tnika,ENSDARG00000056218
 267,tnika,ENSDARG00000056218
+```
 
+```
 sed -e 's/.*,//' gene_list.csv | grep ENSDARG | grep -c -f - gene_names_ens_sorted.tsv
 329
+```
 
 So 5 genes missing:
 
+```
 for gene in `sed -e 's/.*,//' gene_list.csv | grep ENSDARG`; do echo -ne "$gene\t"; grep -c $gene gene_names_ens_sorted.tsv; done | grep 0$ | cut -f1 | grep -f - gene_list.csv
 6,crhr2,ENSDARG00000092918
 49,wnt8a,ENSDARG00000052910
 206,atp2b4,ENSDARG00000044902
 241,her4.2,ENSDARG00000056729
 323,vav3b,ENSDARG00000073713
+```
 
 3 are mapped to a different Ensembl ID, one is a problematic gene, and another is missing entirely from the Lawson Lab annotation:
 
+```
 for gene in `sed -e 's/.*,//' gene_list.csv | grep ENSDARG`; do echo -ne "$gene\t"; grep -c $gene gene_names_ens_sorted.tsv; done | grep 0$ | cut -f1 \
   | grep -f - gene_list.csv | sed -e 's/,ENSDARG.*//' | sed -e 's/.*,//' | grep -if - gene_names_ens_sorted.tsv
 her4.2	ENSDARG00000094426	TRUE
@@ -129,6 +144,7 @@ chr14	34490445	34497724	+	LL0000032103	wnt8a	"wingless-type MMTV integration sit
 chr14	32783973	32788046	+	LL0000039783	crhr2	corticotropin releasing hormone receptor 2 [Source:NCBI gene;Acc:100002312]	ENSDARG00000092918.3	100002312
 chr2	2503397	2511944	+	LL0000039784	crhr2	corticotropin releasing hormone receptor 2 [Source:NCBI gene;Acc:100002312]	ENSDARG00000103704.2	100002312
 chr2	2563193	2608112	+	LL0000039785	crhr2	corticotropin releasing hormone receptor 2 [Source:NCBI gene;Acc:100002312]	ENSDARG00000062377.6	100335005
+```
 
 Back to RStudio:
 

@@ -94,53 +94,34 @@ Check the list of genes supplied by Amanda:
 
 ```
 sed -e 's/.*,//' gene_list.csv | grep ENSDARG | sort -u | wc -l
-334
-```
-
-Two genes are repeated in the list:
-
-```
-grep ENSDARG00000077840 gene_list.csv
-95,meis2a,ENSDARG00000077840
-96,meis2b,ENSDARG00000077840
-
-grep ENSDARG00000056218 gene_list.csv
-13,tnika,ENSDARG00000056218
-267,tnika,ENSDARG00000056218
+336
 ```
 
 ```
 sed -e 's/.*,//' gene_list.csv | grep ENSDARG | grep -c -f - gene_names_ens_sorted.tsv
-329
+333
 ```
 
-So 5 genes missing:
+So 3 genes missing:
 
 ```
 for gene in `sed -e 's/.*,//' gene_list.csv | grep ENSDARG`; do echo -ne "$gene\t"; grep -c $gene gene_names_ens_sorted.tsv; done | grep 0$ | cut -f1 | grep -f - gene_list.csv
-6,crhr2,ENSDARG00000092918
-49,wnt8a,ENSDARG00000052910
-206,atp2b4,ENSDARG00000044902
-241,her4.2,ENSDARG00000056729
-323,vav3b,ENSDARG00000073713
+crhr2,ENSDARG00000062377
+crhr2,ENSDARG00000103704
+atp2b4,ENSDARG00000044902
 ```
 
-3 are mapped to a different Ensembl ID, one is a problematic gene, and another is missing entirely from the Lawson Lab annotation:
+One is a problematic gene (crhr2 has multipled Ensembl IDs) and another is missing entirely from the Lawson Lab annotation:
 
 ```
 for gene in `sed -e 's/.*,//' gene_list.csv | grep ENSDARG`; do echo -ne "$gene\t"; grep -c $gene gene_names_ens_sorted.tsv; done | grep 0$ | cut -f1 \
   | grep -f - gene_list.csv | sed -e 's/,ENSDARG.*//' | sed -e 's/.*,//' | grep -if - gene_names_ens_sorted.tsv
-her4.2	ENSDARG00000094426	TRUE
-vav3b	ENSDARG00000075962	TRUE
-wnt8a	ENSDARG00000078507	TRUE
 crhr2		FALSE
 crhr2.1		FALSE
 crhr2.2		FALSE
 
-for gene in `sed -e 's/.*,//' gene_list.csv | grep ENSDARG`; do echo -ne "$gene\t"; grep -c $gene gene_names_ens_sorted.tsv; done | grep 0$ | cut -f1 | grep -f - gene_list.csv | sed -e 's/,ENSDARG.*//' | sed -e 's/.*,//' | grep -if - v4_3_2geneinfo.txt | cut -f1-10
-chr23	21455152	21471022	-	LL0000012050	her4.2	"hairy-related 4, tandem duplicate 2"	ENSDARG00000094426.4	30301	ZDB-GENE-060815-1
-chr2	15776156	16159491	-	LL0000031813	vav3b	vav 3 guanine nucleotide exchange factor b	ENSDARG00000075962.6	559145	ZDB-GENE-070912-251
-chr14	34490445	34497724	+	LL0000032103	wnt8a	"wingless-type MMTV integration site family, member 8a"	ENSDARG00000078507.6	553976	ZDB-GENE-980526-332
+for gene in `sed -e 's/.*,//' gene_list.csv | grep ENSDARG`; do echo -ne "$gene\t"; grep -c $gene gene_names_ens_sorted.tsv; done | grep 0$ \
+  | cut -f1 | grep -f - gene_list.csv | sed -e 's/,ENSDARG.*//' | sed -e 's/.*,//' | grep -if - v4_3_2geneinfo.txt | cut -f1-10
 chr14	32783973	32788046	+	LL0000039783	crhr2	corticotropin releasing hormone receptor 2 [Source:NCBI gene;Acc:100002312]	ENSDARG00000092918.3	100002312
 chr2	2503397	2511944	+	LL0000039784	crhr2	corticotropin releasing hormone receptor 2 [Source:NCBI gene;Acc:100002312]	ENSDARG00000103704.2	100002312
 chr2	2563193	2608112	+	LL0000039785	crhr2	corticotropin releasing hormone receptor 2 [Source:NCBI gene;Acc:100002312]	ENSDARG00000062377.6	100335005
